@@ -2,6 +2,7 @@ import Player from "./components/Player";
 import GameBoard from "./components/GameBoard";
 import { useState } from "react";
 import { winningCombinations } from "./winningCombinations.js";
+import GameOver from "./components/GameOver.jsx";
 
 const initialGameBoard = [
   [null, null, null],
@@ -10,7 +11,7 @@ const initialGameBoard = [
 ];
 
 function App() {
-  const [activePlayer, setActivePlayer] = useState("O");
+  const [activePlayer, setActivePlayer] = useState("X");
   const [gameBoard, setGameBoard] = useState(initialGameBoard);
 
   function checkWinner(board) {
@@ -27,12 +28,17 @@ function App() {
     return null; // No winner found
   }
 
-  const winningPlayer = checkWinner(gameBoard);
-  if (winningPlayer) {
-    alert(`Player ${winningPlayer} wins!`);
+  function checkDraw(board) {
+    return board.every((row) => row.every((cell) => cell !== null));
+  }
+
+  function resetGame() {
     setGameBoard(initialGameBoard); // Reset the game board
     setActivePlayer("X"); // Reset to Player 1
   }
+
+  const winningPlayer = checkWinner(gameBoard);
+  const isDraw = checkDraw(gameBoard);
 
   function updateGameBoard(rowIndex, cellIndex) {
     if (gameBoard[rowIndex][cellIndex] !== null) {
@@ -45,6 +51,9 @@ function App() {
       }
       return newBoard;
     });
+    if (winningPlayer || isDraw) {
+      return; // Do not switch players if the game is over
+    }
     setActivePlayer((prevPlayer) => (prevPlayer === "X" ? "O" : "X"));
   }
 
@@ -62,6 +71,10 @@ function App() {
           isActivePlayer={activePlayer === "O"}
         />
       </ol>
+      {winningPlayer && (
+        <GameOver winner={winningPlayer} resetGame={resetGame} />
+      )}
+      {isDraw && <GameOver winner={null} resetGame={resetGame} />}
       <GameBoard gameBoard={gameBoard} updateGameBoard={updateGameBoard} />
     </div>
   );
